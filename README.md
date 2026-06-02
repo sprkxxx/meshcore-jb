@@ -555,13 +555,13 @@ Yang ikhlas,
 
 | Resource | URL |
 |---|---|
-| MeshCore official site | meshcore.io |
-| Official firmware flasher | meshcore.io/flasher |
-| KiekR companion app | kiekr.app |
-| KiekR coverage map | map.kiekr.app |
-| MeshCore node map | map.meshcore.io |
-| EasySkyMesh repeater firmware | github.com/IoTThinks/EasySkyMesh/releases |
-| LetsMesh observer onboard | analyzer.letsmesh.net/observer/onboard |
+| MeshCore official site | https://meshcore.io |
+| Official firmware flasher | https://meshcore.io/flasher |
+| KiekR companion app | https://kiekr.app |
+| KiekR coverage map | https://map.kiekr.app |
+| MeshCore node map | https://map.meshcore.io |
+| EasySkyMesh repeater firmware | https://github.com/IoTThinks/EasySkyMesh/releases |
+| LetsMesh observer onboard | https://analyzer.letsmesh.net/observer/onboard |
 | MCMC regulation | MCMC MTSFB TC T007:2020 — Table 1, Row 36 |
 
 ---
