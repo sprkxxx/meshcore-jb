@@ -13,13 +13,14 @@
 4. [Node Types — Repeater vs Companion](#4-node-types--repeater-vs-companion)
 5. [Building a Repeater Node](#5-building-a-repeater-node)
 6. [Joining as a Companion](#6-joining-as-a-companion)
-7. [DIY Coco Flowerpot Antenna](#7-diy-coco-flowerpot-antenna)
-8. [New Node Onboarding Steps](#8-new-node-onboarding-steps)
-9. [Current Network Coverage](#9-current-network-coverage)
-10. [Network Scaling Roadmap](#10-network-scaling-roadmap)
-11. [LetsMesh Observer & MQTT](#11-letsmesh-observer--mqtt)
-12. [JMB Outreach Template (Bahasa Malaysia)](#12-jmb-outreach-template-bahasa-malaysia)
-13. [Quick Reference Card](#13-quick-reference-card)
+7. [Companion Apps](#7-companion-apps)
+8. [DIY Coco Flowerpot Antenna](#8-diy-coco-flowerpot-antenna)
+9. [New Node Onboarding Steps](#9-new-node-onboarding-steps)
+10. [Current Network Coverage](#10-current-network-coverage)
+11. [Network Scaling Roadmap](#11-network-scaling-roadmap)
+12. [LetsMesh Observer & MQTT](#12-letsmesh-observer--mqtt)
+13. [JMB Outreach Template (Bahasa Malaysia)](#13-jmb-outreach-template-bahasa-malaysia)
+14. [Quick Reference Card](#14-quick-reference-card)
 
 ---
 
@@ -210,7 +211,81 @@ Companion devices with high-gain antennas can also exceed 500 mW EIRP if TX is s
 
 ---
 
-## 7. DIY Coco Flowerpot Antenna
+## 7. Companion Apps
+
+There are two companion app options for joining the JB mesh network. Both speak the same on-air MeshCore protocol — users of either app share the same mesh seamlessly.
+
+### Official MeshCore app
+
+The primary app maintained by the MeshCore project. Get it via the official flasher and app store links at [meshcore.io](https://meshcore.io).
+
+### KiekR — community toolbox
+
+**[kiekr.app](https://kiekr.app)** is an independent, community-built MeshCore client for iOS and Android. It pairs over Bluetooth with the same MeshCore-compatible LoRa radio the official app uses — no separate hardware, no firmware change required. KiekR users and official-app users share one seamless mesh.
+
+| Platform | Download |
+|---|---|
+| Android (Google Play open beta) | play.google.com/apps/testing/app.kiekr |
+| Android (direct APK) | kiekr.app/download/android/latest |
+| iOS (TestFlight beta) | testflight.apple.com/join/X8wnyh87 |
+
+> KiekR is currently in open beta. Android users can install directly from the Play Store listing without a waitlist or sign-up.
+
+#### What KiekR adds over the official app
+
+KiekR is built for operators who want more visibility and control over the mesh. Key features:
+
+**Messaging & routing**
+- Direct messages with end-to-end encryption (X25519 + ChaCha20-Poly1305 + SHA-256)
+- Public channel messaging with the standard `#channel` hashtag convention
+- Manual path control — hand-pick the repeater hop sequence for a DM instead of relying on auto-learned paths
+- Per-message region display — each message bubble shows which MeshCore region it came from
+- Stale path recovery — trigger fresh path discovery when a learned repeater path goes dead
+
+**Repeater management**
+- Repeater ACL status display — shows whether your identity is in Group A (no ACL) or Group B (logged in) for each repeater
+- ACL login workflow — send your repeater password and cache the result per identity
+- Tunable neighbour fetch with adjustable retry count for lossy links
+- Region admin commands for repeater operators with admin access
+
+**Coverage & discovery**
+- Online hop resolution — looks up unknown path hops against the kiekr.app or meshcorenetz.de directory
+- Path visualisation — shows decoded hop chains colour-coded on a map
+- Contribution to the live coverage map at [map.kiekr.app](https://map.kiekr.app) — opt-in, signed with a separate key, no message content uploaded
+
+**MQTT bridge**
+- Built-in MQTT bridge forwards raw LoRa packets from your radio to any broker (LetsMesh, meshcorenetz.de, or your own)
+- Replaces the need for a separate Raspberry Pi MQTT bridge for companion nodes that have WiFi
+- Configurable per broker: host, port, TLS, Wi-Fi only mode, IATA region tag
+
+**Multi-identity & backup**
+- Multi-identity history — KiekR remembers every radio identity you have ever connected, so switching nodes preserves DM history per identity
+- Full backup/restore in stock-compatible MeshCore JSON format — importable into the official app
+- KiekR-specific data (login cache, manual paths, MQTT config) exported separately so the stock-compat bundle stays clean
+
+**Privacy**
+- No analytics, no telemetry, no crash reporter phoning home
+- Coverage map contributions are signed with a separate generated key — your MeshCore identity is never uploaded
+- MQTT publishing is off by default — nothing leaves the phone unless you configure a broker
+
+#### KiekR vs official app — quick comparison
+
+| Feature | Official MeshCore app | KiekR |
+|---|---|---|
+| Messaging & DMs | Yes | Yes |
+| Public channels | Yes | Yes |
+| Manual path control | Yes | Yes |
+| Per-message region display | No | Yes |
+| Repeater ACL workflow | Basic | Full (Group A/B status, login cache) |
+| MQTT bridge | No | Yes — built-in |
+| Coverage map contribution | No | Yes — map.kiekr.app |
+| Multi-identity history | No | Yes |
+| Hop resolution & path map | No | Yes |
+| Backup format | MeshCore JSON | MeshCore JSON + KiekR bundle |
+
+---
+
+## 8. DIY Coco Flowerpot Antenna
 
 The JB network's active repeaters use a DIY Coco Flowerpot (collinear) antenna tuned directly to **919.800 MHz**. This is a simple, low-cost, high-performance antenna that anyone can build from coaxial cable.
 
@@ -255,7 +330,7 @@ Lower stub      = (0.66 × 150,000) / 919.800  =  107.6 mm
 
 ---
 
-## 8. New Node Onboarding Steps
+## 9. New Node Onboarding Steps
 
 ### Companion users
 
@@ -328,7 +403,7 @@ Before going live:
 
 ---
 
-## 9. Current Network Coverage
+## 10. Current Network Coverage
 
 ### Active and planned repeater nodes
 
@@ -351,7 +426,7 @@ If you live in or near these areas, your repeater node could be a critical link 
 
 ---
 
-## 10. Network Scaling Roadmap
+## 11. Network Scaling Roadmap
 
 As node count grows and channel congestion increases, radio settings must be progressively adjusted. **All nodes — repeaters and companions — must be updated simultaneously** when changing settings. A partial update will split the network.
 
@@ -377,7 +452,7 @@ As node count grows and channel congestion increases, radio settings must be pro
 
 ---
 
-## 11. LetsMesh Observer & MQTT
+## 12. LetsMesh Observer & MQTT
 
 A LetsMesh MQTT observer publishes the network's activity to the public map, making nodes and messages visible at [analyzer.letsmesh.net](https://analyzer.letsmesh.net). An observer requires a node with WiFi access and ideally mains power.
 
@@ -404,7 +479,7 @@ Observer onboarding: [analyzer.letsmesh.net/observer/onboard](https://analyzer.l
 
 ---
 
-## 12. JMB Outreach Template (Bahasa Malaysia)
+## 13. JMB Outreach Template (Bahasa Malaysia)
 
 Use this template when approaching building management (JMB) for rooftop repeater installation permission. Fill in `[Nama Bangunan]`, `[Nama]`, `[No. Telefon]`, and `[Tarikh]`.
 
@@ -439,7 +514,7 @@ Yang ikhlas,
 
 ---
 
-## 13. Quick Reference Card
+## 14. Quick Reference Card
 
 ### Radio settings — all nodes
 
@@ -480,11 +555,13 @@ Yang ikhlas,
 
 | Resource | URL |
 |---|---|
-| MeshCore official site | https://meshcore.io |
-| Official firmware flasher | https://meshcore.io/flasher |
-| MeshCore node map | https://map.meshcore.io |
-| EasySkyMesh repeater firmware | https://github.com/IoTThinks/EasySkyMesh/releases |
-| LetsMesh observer onboard | https://analyzer.letsmesh.net/observer/onboard |
+| MeshCore official site | meshcore.io |
+| Official firmware flasher | meshcore.io/flasher |
+| KiekR companion app | kiekr.app |
+| KiekR coverage map | map.kiekr.app |
+| MeshCore node map | map.meshcore.io |
+| EasySkyMesh repeater firmware | github.com/IoTThinks/EasySkyMesh/releases |
+| LetsMesh observer onboard | analyzer.letsmesh.net/observer/onboard |
 | MCMC regulation | MCMC MTSFB TC T007:2020 — Table 1, Row 36 |
 
 ---
