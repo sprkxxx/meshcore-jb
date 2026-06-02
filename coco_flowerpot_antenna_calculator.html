@@ -1,0 +1,179 @@
+
+<h2 class="sr-only">DIY Coco Flowerpot antenna length calculator for LoRa frequencies</h2>
+<style>
+.row{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem}
+.lbl{font-size:13px;color:var(--color-text-secondary);min-width:180px}
+.val{font-size:14px;font-weight:500;min-width:60px;text-align:right}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0}
+.rcard{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:0.85rem 1rem}
+.rcard-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.rcard-val{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.rcard-unit{font-size:12px;font-weight:400;color:var(--color-text-secondary)}
+.rcard-sub{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+.divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:1.25rem 0}
+.note{font-size:12px;color:var(--color-text-secondary);line-height:1.6;padding:0.6rem 0.85rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border-left:2px solid #1D9E75;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0}
+.formula{font-family:var(--font-mono);font-size:12px;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:0.6rem 0.85rem;border-radius:var(--border-radius-md);margin:0.75rem 0;line-height:1.8}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem}
+.preset-btn{font-size:12px;padding:4px 12px;cursor:pointer;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary)}
+.preset-btn:hover{background:var(--color-background-secondary)}
+.preset-btn.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary)}
+.ant-svg{width:100%;max-width:320px;display:block;margin:0 auto}
+.section-label{font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:0.75rem;text-transform:uppercase;letter-spacing:.06em}
+</style>
+
+<div style="padding:1rem 0 0">
+
+<div class="section-label">Presets</div>
+<div class="preset-row" id="presets">
+  <button class="preset-btn active" data-freq="919.800" onclick="setPreset(this,919.800)">JB Network · 919.800</button>
+  <button class="preset-btn" data-freq="915" onclick="setPreset(this,915)">915.000 MHz</button>
+  <button class="preset-btn" data-freq="923" onclick="setPreset(this,923)">923.000 MHz</button>
+  <button class="preset-btn" data-freq="433" onclick="setPreset(this,433)">433.000 MHz</button>
+</div>
+
+<div class="row">
+  <span class="lbl">Target frequency (MHz)</span>
+  <input type="range" id="freq" min="400" max="960" step="0.1" value="919.8" style="flex:1" oninput="calc()">
+  <span class="val" id="freq-out">919.8</span>
+</div>
+
+<div class="row">
+  <span class="lbl">Upper VF — foam coax (e.g. RG-58)</span>
+  <input type="range" id="vf-upper" min="0.60" max="0.98" step="0.01" value="0.83" style="flex:1" oninput="calc()">
+  <span class="val" id="vfu-out">0.83</span>
+</div>
+
+<div class="row">
+  <span class="lbl">Lower VF — solid coax (e.g. RG-58 solid)</span>
+  <input type="range" id="vf-lower" min="0.50" max="0.90" step="0.01" value="0.66" style="flex:1" oninput="calc()">
+  <span class="val" id="vfl-out">0.66</span>
+</div>
+
+<div class="formula" id="formula-display">
+  Half-wave = (VF × 150,000) / f_MHz &nbsp;|&nbsp; Quarter-wave = (VF × 75,000) / f_MHz
+</div>
+
+<div class="result-grid">
+  <div class="rcard">
+    <div class="rcard-label">Upper half-wave radiator</div>
+    <div class="rcard-val"><span id="upper-mm">135.4</span> <span class="rcard-unit">mm</span></div>
+    <div class="rcard-sub" id="upper-cm">13.54 cm</div>
+  </div>
+  <div class="rcard">
+    <div class="rcard-label">Lower quarter-wave phasing stub</div>
+    <div class="rcard-val"><span id="lower-mm">107.6</span> <span class="rcard-unit">mm</span></div>
+    <div class="rcard-sub" id="lower-cm">10.76 cm</div>
+  </div>
+  <div class="rcard">
+    <div class="rcard-label">Total antenna length</div>
+    <div class="rcard-val"><span id="total-mm">243.0</span> <span class="rcard-unit">mm</span></div>
+    <div class="rcard-sub" id="total-cm">24.30 cm</div>
+  </div>
+  <div class="rcard">
+    <div class="rcard-label">Free-space half-wave</div>
+    <div class="rcard-val"><span id="free-mm">163.1</span> <span class="rcard-unit">mm</span></div>
+    <div class="rcard-sub">no VF applied</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section-label">Antenna diagram</div>
+
+<svg class="ant-svg" viewBox="0 0 280 340" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <line x1="140" y1="10" x2="140" y2="10" id="ant-top" stroke="var(--color-text-primary)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="140" y1="10" x2="140" y2="10" id="ant-bottom" stroke="var(--color-text-secondary)" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="140" cy="10" r="4" fill="var(--color-text-secondary)" id="ant-feed"/>
+  <text x="155" y="14" font-size="11" fill="var(--color-text-secondary)" id="lbl-feed">feedpoint</text>
+  <text x="155" y="30" font-size="10" fill="var(--color-text-secondary)" font-family="var(--font-mono)" id="lbl-upper-dim"></text>
+  <text x="155" y="200" font-size="10" fill="var(--color-text-secondary)" font-family="var(--font-mono)" id="lbl-lower-dim"></text>
+  <text x="36" y="14" font-size="11" fill="var(--color-text-secondary)" text-anchor="end">upper</text>
+  <text x="36" y="26" font-size="10" fill="var(--color-text-secondary)" text-anchor="end">radiator</text>
+  <text x="36" y="200" font-size="11" fill="var(--color-text-secondary)" text-anchor="end">phasing</text>
+  <text x="36" y="212" font-size="10" fill="var(--color-text-secondary)" text-anchor="end">stub</text>
+  <line x1="100" y1="10" x2="130" y2="10" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <line x1="100" y1="10" x2="100" y2="330" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <text x="50" y="334" font-size="10" fill="var(--color-text-secondary)" font-family="var(--font-mono)" id="lbl-total-dim"></text>
+  <line x1="122" y1="10" x2="118" y2="10" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <line x1="122" y1="330" x2="118" y2="330" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <line x1="120" y1="10" x2="120" y2="330" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+</svg>
+
+<div class="divider"></div>
+
+<div class="note">Mount vertically. Keep feedline short — 15 cm of RG-58 pigtail to an N-Type connector adds negligible loss at 919 MHz. Weather-seal all coax joints with self-amalgamating tape.</div>
+
+</div>
+
+<script>
+function calc(){
+  var f = parseFloat(document.getElementById('freq').value);
+  var vfu = parseFloat(document.getElementById('vf-upper').value);
+  var vfl = parseFloat(document.getElementById('vf-lower').value);
+
+  document.getElementById('freq-out').textContent = f.toFixed(1);
+  document.getElementById('vfu-out').textContent = vfu.toFixed(2);
+  document.getElementById('vfl-out').textContent = vfl.toFixed(2);
+
+  var upper = (vfu * 150000) / f;
+  var lower = (vfl * 75000) / f;
+  var total = upper + lower;
+  var free = 150000 / f;
+
+  document.getElementById('upper-mm').textContent = upper.toFixed(1);
+  document.getElementById('upper-cm').textContent = (upper/10).toFixed(2) + ' cm';
+  document.getElementById('lower-mm').textContent = lower.toFixed(1);
+  document.getElementById('lower-cm').textContent = (lower/10).toFixed(2) + ' cm';
+  document.getElementById('total-mm').textContent = total.toFixed(1);
+  document.getElementById('total-cm').textContent = (total/10).toFixed(2) + ' cm';
+  document.getElementById('free-mm').textContent = free.toFixed(1);
+
+  document.getElementById('lbl-upper-dim').textContent = upper.toFixed(1) + ' mm';
+  document.getElementById('lbl-lower-dim').textContent = lower.toFixed(1) + ' mm';
+  document.getElementById('lbl-total-dim').textContent = 'total: ' + total.toFixed(1) + ' mm';
+
+  var maxLen = 300;
+  var scale = maxLen / Math.max(upper + lower, 1);
+  var uPx = Math.round(upper * scale);
+  var lPx = Math.round(lower * scale);
+  var feedY = 20;
+  var topY = feedY - uPx;
+  var botY = feedY + lPx;
+
+  var svgH = Math.max(botY + 20, 80);
+  document.querySelector('.ant-svg').setAttribute('viewBox', '0 0 280 ' + (svgH + 20));
+
+  document.getElementById('ant-top').setAttribute('y1', feedY);
+  document.getElementById('ant-top').setAttribute('y2', topY < 10 ? 10 : topY);
+  document.getElementById('ant-top').setAttribute('x1', 140);
+  document.getElementById('ant-top').setAttribute('x2', 140);
+  document.getElementById('ant-bottom').setAttribute('y1', feedY);
+  document.getElementById('ant-bottom').setAttribute('y2', botY);
+  document.getElementById('ant-bottom').setAttribute('x1', 140);
+  document.getElementById('ant-bottom').setAttribute('x2', 140);
+  document.getElementById('ant-feed').setAttribute('cy', feedY);
+  document.getElementById('lbl-feed').setAttribute('y', feedY + 4);
+  document.getElementById('lbl-upper-dim').setAttribute('y', (feedY + (topY < 10 ? 10 : topY)) / 2 + 4);
+  document.getElementById('lbl-lower-dim').setAttribute('y', feedY + lPx/2 + 4);
+  var ln = document.querySelector('line[stroke-dasharray]');
+  ln.setAttribute('y1', feedY - uPx < 10 ? 10 : feedY - uPx);
+  ln.setAttribute('y2', botY + 10);
+  document.querySelectorAll('line[x1="122"]')[0].setAttribute('y1', feedY - uPx < 10 ? 10 : feedY - uPx);
+  document.querySelectorAll('line[x1="118"]')[0].setAttribute('y1', feedY - uPx < 10 ? 10 : feedY - uPx);
+  document.querySelectorAll('line[x1="122"]')[1].setAttribute('y1', botY);
+  document.querySelectorAll('line[x1="118"]')[1].setAttribute('y1', botY);
+  document.querySelector('line[x1="120"]').setAttribute('y1', feedY - uPx < 10 ? 10 : feedY - uPx);
+  document.querySelector('line[x1="120"]').setAttribute('y2', botY);
+  document.getElementById('lbl-total-dim').setAttribute('y', botY + 14);
+
+  var presets = document.querySelectorAll('.preset-btn');
+  presets.forEach(function(b){ b.classList.remove('active'); if(parseFloat(b.dataset.freq)===f) b.classList.add('active'); });
+}
+
+function setPreset(btn, freq){
+  document.getElementById('freq').value = freq;
+  calc();
+}
+
+calc();
+</script>
