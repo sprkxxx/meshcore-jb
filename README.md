@@ -14,7 +14,7 @@
 5. [Building a Repeater Node](#5-building-a-repeater-node)
 6. [Joining as a Companion](#6-joining-as-a-companion)
 7. [Companion Apps](#7-companion-apps)
-8. [DIY Coco Flowerpot Antenna](#8-diy-coco-flowerpot-antenna)
+8. [DIY 6-Element Coaxial Collinear Antenna](#8-diy-6-element-coaxial-collinear-antenna)
 9. [New Node Onboarding Steps](#9-new-node-onboarding-steps)
 10. [Current Network Coverage](#10-current-network-coverage)
 11. [Network Scaling Roadmap](#11-network-scaling-roadmap)
@@ -74,11 +74,11 @@ UHF RFID in Malaysia legally shares the 919–923 MHz band. RFID interrogators c
 
 ```
 Frequency        :  919.800 MHz
-Bandwidth        :  125 kHz
-Spreading Factor :  SF12
+Bandwidth        :  62.5 kHz
+Spreading Factor :  SF10
 Coding Rate      :  CR5 (4/5)
 TX Power         :  22 dBm  ← DO NOT EXCEED
-Link Budget      :  ~157–158.5 dB
+Link Budget      :  ~156–157 dB
 ```
 
 > 🔴 **All nodes — repeaters and companions — must use identical radio settings to communicate. Do not change these without coordinating a simultaneous network-wide update.**
@@ -88,8 +88,8 @@ Link Budget      :  ~157–158.5 dB
 | Parameter | Value | Reason |
 |---|---|---|
 | 919.800 MHz | Row 36 | No duty cycle restriction. Clear of Meshtastic MY (922.875 / 921.125 MHz). Away from RFID concentration. |
-| 125 kHz BW | Best sensitivity | Each BW doubling costs ~3 dB link budget. 125 kHz maximises range for sparse network. |
-| SF12 | Max link budget | +158.5 dB. Critical for long urban gaps (e.g. Perling Rawa to Kempas Denai ~5.5 km). Same as Meshtastic LongSlow. |
+| 62.5 kHz BW | Best sensitivity | Halving BW gains ~3 dB sensitivity vs 125 kHz. Suits current node density — lower throughput is acceptable at SF10. |
+| SF10 | Balanced link budget | ~156 dB with 62.5 kHz BW. Reduces airtime vs SF12 while retaining excellent sensitivity for JB node spacing. |
 | CR5 (4/5) | Efficient FEC | Sufficient error correction. Lower overhead vs CR8. Faster airtime without range penalty. |
 | 22 dBm | MeshCore max | MeshCore firmware caps TX at 22 dBm. With ~3 dBi antenna, EIRP ≈ 315–400 mW — within the 500 mW legal limit. |
 
@@ -98,15 +98,15 @@ Link Budget      :  ~157–158.5 dB
 | Parameter | MeshCore JB (ours) | Meshtastic LongFast MY | Meshtastic MediumFast MY |
 |---|---|---|---|
 | Frequency | 919.800 MHz | 922.875 MHz | 921.125 MHz |
-| Bandwidth | 125 kHz | 250 kHz | 250 kHz |
-| SF | SF12 | SF11 | SF9 |
+| Bandwidth | 62.5 kHz | 250 kHz | 250 kHz |
+| SF | SF10 | SF11 | SF9 |
 | CR | 4/5 | 4/5 | 4/5 |
-| Link Budget | ~157 dB | 153 dB | 148 dB |
+| Link Budget | ~156 dB | 153 dB | 148 dB |
 | Protocol | Store & Forward | Flooding | Flooding |
 | Duty Cycle Rule | Row 36 — None | Row 37 issue | Row 36 — OK |
 | Range | **Best** | Good | Shorter |
 
-### Message delivery time at SF12
+### Message delivery time at SF10
 
 | Factor | Duration |
 |---|---|
@@ -115,7 +115,7 @@ Link Budget      :  ~157–158.5 dB
 | Per additional hop | +1 – 2 seconds |
 | **Typical 2-hop delivery total** | **5 – 8 seconds** |
 
-For flood alerts and distress calls, 5–8 second delivery is entirely acceptable. The 3 dB link budget advantage of SF12 over SF11 is more valuable than saving 2–3 seconds in a sparse network with long inter-node gaps.
+For flood alerts and distress calls, 2–5 second delivery is entirely acceptable. SF10 + 62.5 kHz BW gives ~156 dB link budget — 3 dB better than 125 kHz — while reducing airtime vs SF12. Well suited for the current JB node spacing.
 
 ---
 
@@ -184,8 +184,8 @@ Other known-working platforms include T-Beam, HELTEC LoRa32, RAK WisBlock, and s
 
 Regardless of hardware or firmware choice, a repeater joining this network must:
 
-- [ ] Operate on **919.800 MHz, 125 kHz BW, SF12, CR5**
-- [ ] TX power set to **22 dBm maximum**
+- [ ] Operate on **919.800 MHz, 62.5 kHz BW, SF10, CR5**
+- [ ] TX power set to **20 dBm maximum** (if using the 6-element collinear — see Section 8 for EIRP compliance calculation)
 - [ ] Be mounted at an **elevated outdoor position** with a suitable antenna
 - [ ] Run **continuously** (solar, mains, or large battery backup)
 - [ ] Use a **weatherproof enclosure**
@@ -285,48 +285,84 @@ KiekR is built for operators who want more visibility and control over the mesh.
 
 ---
 
-## 8. DIY Coco Flowerpot Antenna
+## 8. DIY 6-Element Coaxial Collinear Antenna
 
-The JB network's active repeaters use a DIY Coco Flowerpot (collinear) antenna tuned directly to **919.800 MHz**. This is a simple, low-cost, high-performance antenna that anyone can build from coaxial cable.
+The JB network's active repeaters use a DIY 6-element coaxial collinear antenna built entirely from **RG-58 coaxial cable**, tuned to **919.800 MHz**. No phasing stubs — elements are cut and tuned directly from the coax. This design provides high gain and an omnidirectional pattern ideal for fixed elevated repeaters.
 
-### What is a Coco Flowerpot antenna?
+### Design overview
 
-A Coco (collinear) Flowerpot is a half-wave dipole-based collinear antenna built from a single piece of coax. It has ~3 dBi gain, omnidirectional pattern, and is well suited for fixed repeater use. No soldering required — it is built entirely from the coax itself using calculated velocity factor lengths.
+| Property | Value |
+|---|---|
+| Construction | RG-58 coax throughout — no separate phasing stubs |
+| Structure | 1× quarter-wave top element + 5× half-wave elements |
+| Top element | Quarter-wave — centre conductor exposed, no separate solder joint needed |
+| Elements 2–6 | Half-wave — cut from RG-58, tuned to 919.800 MHz |
+| Ferrite choke | 2× ferrite cores on feedline, just below the bottom element |
+| Gain | ~6–8 dBi practical |
+| Pattern | Omnidirectional, vertically polarised |
+| Target frequency | 919.800 MHz (calculated at 920 MHz) |
 
-### Velocity factor values used (RG-58)
+### How this design works
 
-| Section | Velocity Factor | Purpose |
-|---|---|---|
-| Upper radiator (foam core) | **VF 0.83** | Half-wave radiating element |
-| Lower phasing stub (solid core) | **VF 0.66** | Quarter-wave phasing coil |
+The top 1/4 wave section is the exposed RG-58 centre conductor — no solder joint required at the tip. It transitions naturally into the first full 1/2 wave element below it. Each subsequent element is a half-wave section of RG-58 where the outer braid is the radiating surface. Elements stay in phase through the coax geometry itself — no separate phasing stub required. The 2 ferrite cores threaded onto the feedline just below the bottom element act as a **common-mode choke balun**, preventing RF from travelling back down the outside of the feedline shield and degrading the radiation pattern.
 
-### Length calculator
-
-The antenna dimensions are calculated from the target frequency and the velocity factor of each coax section. For **919.800 MHz** with RG-58:
-
-**Formula:**
+### Element lengths — calculated at 920 MHz (RG-58, VF 0.66)
 
 ```
-Half-wave length (mm) = (VF × 150,000) / frequency_MHz
+Quarter-wave (mm) = (VF × 75,000) / frequency_MHz
+                  = (0.66 × 75,000) / 920  =  53.8 mm
 
-Upper radiator  = (0.83 × 150,000) / 919.800  =  135.4 mm
-Lower stub      = (0.66 × 150,000) / 919.800  =  107.6 mm
+Half-wave (mm)    = (VF × 150,000) / frequency_MHz
+                  = (0.66 × 150,000) / 920  =  107.6 mm
 ```
 
-| Section | VF | Calculated length |
-|---|---|---|
-| Upper half-wave radiator | 0.83 | **135.4 mm** |
-| Lower quarter-wave phasing stub | 0.66 | **107.6 mm** |
+| # | Section | Type | Length |
+|---|---|---|---|
+| 1 | Top element — exposed centre conductor | 1/4 wave | **53.8 mm** |
+| 2 | Element 2 | 1/2 wave | **107.6 mm** |
+| 3 | Element 3 | 1/2 wave | **107.6 mm** |
+| 4 | Element 4 | 1/2 wave | **107.6 mm** |
+| 5 | Element 5 | 1/2 wave | **107.6 mm** |
+| 6 | Element 6 (bottom / driven) | 1/2 wave | **107.6 mm** |
+| — | Ferrite choke | 2× cores on feedline | Just below element 6 |
+| **Total radiating stack** | | | **~592 mm (~59 cm)** |
 
-> These lengths are tuned to 919.800 MHz. If you change target frequency, recalculate both sections using the same formula. The interactive calculator below lets you adjust frequency and VF values.
+### EIRP compliance check
+
+With 6-element collinear (~7 dBi practical) at 22 dBm TX:
+
+```
+EIRP = TX power + Antenna gain - Feedline loss
+     = 22 dBm + 7 dBi - ~0.5 dB  =  ~28.5 dBm  ≈  ~700 mW
+```
+
+> ⚠️ **28.5 dBm EIRP exceeds the MCMC Row 36 limit of 500 mW (27 dBm EIRP).** TX power must be reduced to compensate.
+
+```
+Max EIRP allowed  = 27 dBm  (500 mW)
+Antenna gain      = 7 dBi (practical)
+Required TX max   = 27 - 7 = 20 dBm  ← set TX to 20 dBm with this antenna
+```
+
+> 📌 **Set TX power to 20 dBm maximum** when using this antenna to stay within 500 mW EIRP. If your measured antenna gain differs, recalculate accordingly.
+
+### Build sequence
+
+1. **Top element:** Strip RG-58 at the top — expose 53.8 mm of bare centre conductor. Leave the braid folded back and secured. This is your 1/4 wave tip — no solder joint needed at the top end.
+2. **Elements 2–6:** Each is a 107.6 mm section of RG-58 where the braid is the active radiator. Strip and prepare each junction carefully — maintain coax continuity between elements.
+3. **Solder junctions:** Solder each element-to-element junction, maintaining the coax signal path through the stack.
+4. **Ferrite choke:** Thread 2 ferrite cores onto the RG-58 feedline immediately below element 6 (the bottom element). Secure with cable ties or heat shrink. This choke suppresses common-mode current on the feedline outer shield.
+5. **Feedpoint:** Connect 50Ω feedline below the ferrite choke — N-Type or SMA depending on your connector.
 
 ### Build notes
 
-- Use RG-58 throughout for both sections
-- The phasing stub is formed by folding the coax back on itself (the braid acts as the return path)
-- Weather-seal all joints with self-amalgamating tape
-- Mount vertically — the antenna is omnidirectional only when vertical
-- A 15 cm RG-58 pigtail to N-Type connector at the feedpoint is sufficient; cable loss at this length is negligible
+- Use RG-58 with VF 0.66 throughout — verify VF if using a different coax brand
+- Measure and cut each element length accurately — errors accumulate across 6 elements
+- Verify SWR with NanoVNA **before** enclosing in PVC housing — target SWR ≤ 1.5 at 919.800 MHz
+- Mount vertically — the gain pattern collapses if the antenna tilts
+- House in 32–40mm PVC conduit with weatherproof end caps
+- Leave a small condensation drain hole at the bottom end cap
+- Weather-seal the feedpoint entry with self-amalgamating tape or neutral-cure silicone
 
 ---
 
@@ -336,7 +372,7 @@ Lower stub      = (0.66 × 150,000) / 919.800  =  107.6 mm
 
 1. Visit [meshcore.io](https://meshcore.io) — check supported devices
 2. Flash using [meshcore.io/flasher](https://meshcore.io/flasher) — select your board and the companion role
-3. Set radio parameters: **919.800 MHz · 125 kHz · SF12 · CR5 · 22 dBm max**
+3. Set radio parameters: **919.800 MHz · 62.5 kHz · SF10 · CR5**
 4. You are on the network — check [map.meshcore.io](https://map.meshcore.io) to see nearby nodes
 
 ### Repeater operators — full checklist
@@ -370,10 +406,11 @@ Do this **before** configuring radio settings. Skip this step if using other fir
 Set on all firmware types:
 ```
 Frequency    :  919.800 MHz
-Bandwidth    :  125 kHz
-SF           :  12
+Bandwidth    :  62.5 kHz
+SF           :  10
 CR           :  4/5 (CR5)
-TX Power     :  22 dBm  ← MeshCore firmware maximum
+TX Power     :  20 dBm  ← with 6-element collinear (MCMC compliance)
+               22 dBm  ← only if using a low-gain antenna (≤3 dBi)
 ```
 
 **Step 5 — Assemble and weatherproof**
@@ -409,10 +446,11 @@ Before going live:
 
 | Node | Location | Zone | Height | Antenna | Status |
 |---|---|---|---|---|---|
-| Repeater 1 | Taman Perling Rawa | West | 7m roof + 3m pole = 10m | DIY Coco 919.800 MHz | ✅ Active |
-| Repeater 2 | Kempas Denai | Central-West | 3-storey hillside + 10ft pole (~13m eff.) | DIY Coco 919.800 MHz | ✅ Active |
+| Repeater 1 | Taman Perling Rawa | West | 7m roof + 3m pole = 10m | DIY 6-element collinear 919.800 MHz | ✅ Active |
+| Repeater 2 | Kempas Denai | Central-West | 3-storey hillside + 10ft pole (~13m eff.) | DIY 6-element collinear 919.800 MHz | ✅ Active |
 | Repeater 3 | Taman Setia Tropika | North-West | 7m rooftop | Gizont 5dBi fiberglass | ✅ Active |
-| Repeater 4 | Bandar Baru Uda (APM Building) | South | TBC — elevated | TBC | 🔶 Upcoming |
+| Repeater 4 | Taman Dahlia, Tampoi | West-Central | 10–13m AGL | RAK board · 5.8dBi antenna | ✅ Active |
+| Repeater 5 | Bandar Baru Uda (APM Building) | South | TBC — elevated | TBC | 🔶 Upcoming |
 
 ### Target recruit areas — repeater nodes needed
 
@@ -424,6 +462,8 @@ Before going live:
 
 If you live in or near these areas, your repeater node could be a critical link in the network.
 
+> ⚠️ **Taman Dahlia EIRP note:** RAK board at 22 dBm + 5.8 dBi antenna = ~27.8 dBm EIRP (~600 mW) — marginally exceeds the MCMC Row 36 500 mW limit. Operator should reduce TX to **21 dBm** (22 − 1 headroom) or measure actual antenna gain. At 21 dBm + 5.8 dBi = 26.8 dBm EIRP (~480 mW) — compliant.
+
 ---
 
 ## 11. Network Scaling Roadmap
@@ -434,12 +474,12 @@ As node count grows and channel congestion increases, radio settings must be pro
 
 | Stage | Node Count | Frequency | BW | SF | CR | Expected Range/Hop |
 |---|---|---|---|---|---|---|
-| 1 — Current | <10 nodes | 919.800 MHz | 125 kHz | SF12 | CR5 | 8–12 km |
-| 2 — Growing | 10–20 nodes | 919.800 MHz | 125 kHz | SF11 | CR5 | 6–9 km |
-| 3 — Established | 20–50 nodes | 919.800 MHz | 250 kHz | SF10 | CR5 | 4–6 km |
-| 4 — Dense Urban | 50+ nodes | 919.800 MHz | 250 kHz | SF9 | CR5 | 3–4 km |
+| 1 — Past | <10 nodes | 919.800 MHz | 125 kHz | SF12 | CR5 | 8–12 km |
+| 2 — Current ✅ | 10–20 nodes | 919.800 MHz | 62.5 kHz | SF10 | CR5 | 5–8 km |
+| 3 — Established | 20–50 nodes | 919.800 MHz | 250 kHz | SF9 | CR5 | 3–4 km |
+| 4 — Dense Urban | 50+ nodes | 919.800 MHz | 250 kHz | SF8 | CR5 | 2–3 km |
 
-> 📌 Frequency (919.800 MHz) and TX power (22 dBm) remain constant at ALL stages. Only SF and BW change. CR5 is sufficient at all stages.
+> 📌 Frequency (919.800 MHz) and TX power (22 dBm) remain constant at ALL stages. Only SF and BW change as density increases. CR5 is sufficient at all stages. The network is currently operating at **Stage 2 (SF10)**.
 
 ### Trigger points — when to change settings
 
@@ -521,10 +561,10 @@ Yang ikhlas,
 | Parameter | Value |
 |---|---|
 | Frequency | **919.800 MHz** |
-| Bandwidth | **125 kHz** |
-| Spreading Factor | **SF12** |
+| Bandwidth | **62.5 kHz** |
+| Spreading Factor | **SF10** |
 | Coding Rate | **CR5 (4/5)** |
-| TX Power | **22 dBm max — MeshCore firmware limit** |
+| TX Power | **20 dBm max** (with 6-element collinear — MCMC 500 mW EIRP limit) |
 | Regulation | MCMC Row 36 — 919–923 MHz, 500 mW EIRP |
 | Protocol | MeshCore store-and-forward |
 
@@ -544,24 +584,27 @@ Yang ikhlas,
 | `powersaving off` | Disable power saving (testing/config only) |
 | `powerlog` | Check last reset reason and boot voltage |
 
-### Coco Flowerpot antenna — 919.800 MHz lengths (RG-58)
+### 6-element coaxial collinear antenna — 919.800 MHz lengths (RG-58, VF 0.66)
 
-| Section | VF | Length |
-|---|---|---|
-| Upper half-wave radiator | 0.83 | **135.4 mm** |
-| Lower quarter-wave phasing stub | 0.66 | **107.6 mm** |
+| Section | Type | VF | Length |
+|---|---|---|---|
+| Top element (exposed centre conductor) | 1/4 wave | 0.66 | **53.8 mm** |
+| Elements 2–6 | 1/2 wave each | 0.66 | **107.6 mm each** |
+| Ferrite choke | 2× cores on feedline | — | Just below element 6 |
+| Total radiating stack | | | **~592 mm** |
+| Gain | ~6–8 dBi practical | TX with this antenna | **20 dBm max (MCMC compliance)** |
 
 ### Key links
 
 | Resource | URL |
 |---|---|
-| MeshCore official site | https://meshcore.io |
-| Official firmware flasher | https://meshcore.io/flasher |
-| KiekR companion app | https://kiekr.app |
-| KiekR coverage map | https://map.kiekr.app |
-| MeshCore node map | https://map.meshcore.io |
-| EasySkyMesh repeater firmware | https://github.com/IoTThinks/EasySkyMesh/releases |
-| LetsMesh observer onboard | https://analyzer.letsmesh.net/observer/onboard |
+| MeshCore official site | meshcore.io |
+| Official firmware flasher | meshcore.io/flasher |
+| KiekR companion app | kiekr.app |
+| KiekR coverage map | map.kiekr.app |
+| MeshCore node map | map.meshcore.io |
+| EasySkyMesh repeater firmware | github.com/IoTThinks/EasySkyMesh/releases |
+| LetsMesh observer onboard | analyzer.letsmesh.net/observer/onboard |
 | MCMC regulation | MCMC MTSFB TC T007:2020 — Table 1, Row 36 |
 
 ---
